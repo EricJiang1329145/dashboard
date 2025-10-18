@@ -4,7 +4,9 @@
 
 ## 最近更新
 
+- **当设置页面显示时，为仪表盘背景添加模糊效果**：实现了当设置页面打开时，仪表盘背景使用.light模糊样式的效果，提升了视觉层次感和现代感。
 - **移除了SettingsView中的NavigationView**：修复了在ContentView中调用SettingsView时出现的方框底层问题，现在设置界面在两种预览模式下都能正确显示圆角效果，不会有额外的方框遮挡下方组件。
+- **使用GeometryReader替代UIScreen.main**：修复了iOS 26.0中UIScreen.main API弃用警告，提高了代码的未来兼容性。
 
 ## 功能特性
 

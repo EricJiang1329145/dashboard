@@ -1,18 +1,34 @@
-//
-//  ContentView.swift
-//  dashboard
-//
-//  Created by Eric Jiang on 2025/10/12.
-//
+# ContentView组件文档
 
-import SwiftUI
-import UIKit
+## 功能说明
 
+ContentView是应用的主视图组件，作为仪表盘的容器，包含时钟显示和设置入口。该组件负责管理仪表盘与设置页面之间的交互，并实现当设置页面显示时为仪表盘背景添加模糊效果的功能（使用.light样式）。
+
+## 文件位置
+
+`/Users/ericjiang/Desktop/pgms/dashboard/dashboard/ContentView.swift`
+
+## 技术实现
+
+1. 使用`@State`管理设置页面的显示状态`isSettingsVisible`
+2. 使用`@ObservedObject`观察用户设置变化
+3. 使用`@Environment(\.colorScheme)`响应系统颜色模式变化
+4. 采用`ZStack`实现分层布局，使设置页面覆盖在仪表盘之上
+5. 使用`GeometryReader`获取视图尺寸信息，避免使用已弃用的`UIScreen.main`
+6. 实现了精确的组件层级结构：
+   - 桌面组件（时钟、设置按钮）位于底层
+   - 模糊效果层位于桌面组件之上，设置页面之下
+   - 设置页面位于最顶层
+7. 实现了条件渲染的背景模糊效果：当设置页面显示时，在桌面组件之上添加`.light`样式的模糊效果
+8. 使用`VisualEffectView`封装UIKit的`UIVisualEffectView`，实现SwiftUI中的模糊效果
+9. 通过设置`zIndex`确保各组件正确的显示层级关系
+
+## 核心实现代码
+
+```swift
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var isSettingsVisible = false
-    
-    // 时钟设置状态
     @ObservedObject private var userSettings = UserSettings.shared
     
     var body: some View {
@@ -21,11 +37,10 @@ struct ContentView: View {
                 // 主背景
                 colorScheme == .dark ? Color.black : Color.white
                 
-                // 时钟组件放置在左上角
+                // 桌面组件（时钟、设置按钮）
                 ClockView(showSeconds: $userSettings.showSeconds, fontSize: $userSettings.fontSize, is24HourFormat: $userSettings.is24HourFormat)
                     .padding()
                 
-                // 设置按钮放置在右上角
                 Button(action: {
                     isSettingsVisible = true
                 }) {
@@ -39,14 +54,14 @@ struct ContentView: View {
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 
-                // 当设置页面显示时，为背景添加模糊效果（放在桌面组件之后，设置页面之前）
+                // 模糊效果层（位于桌面组件之上，设置页面之下）
                 if isSettingsVisible {
                     VisualEffectView(effect: UIBlurEffect(style: .light))
                         .edgesIgnoringSafeArea(.all)
                         .zIndex(1)
                 }
                 
-                // 设置页面覆盖层（仅覆盖内容区域，不覆盖整个屏幕）
+                // 设置页面（位于最顶层）
                 if isSettingsVisible {
                     SettingsView(isVisible: $isSettingsVisible)
                         .transition(.move(edge: .bottom))
@@ -74,8 +89,13 @@ struct VisualEffectView: UIViewRepresentable {
         uiView.effect = effect
     }
 }
+```
 
-#Preview {
-    ContentView()
-        .preferredColorScheme(.dark)
-}
+## 功能特性
+
+1. **桌面组件模糊效果**：当设置页面打开时，模糊效果覆盖所有桌面组件（时钟、设置按钮等），增强视觉层次感和现代感
+2. **精确的层级管理**：通过调整组件在ZStack中的顺序和设置zIndex，确保模糊效果正确地覆盖桌面组件而不影响设置页面的显示
+3. **响应式设计**：模糊效果随设置页面的显示状态动态添加和移除
+4. **全屏覆盖**：模糊效果覆盖整个安全区域，确保视觉一致性
+5. **与系统样式兼容**：模糊效果适配系统明亮和暗黑模式
+6. **现代化API使用**：使用GeometryReader替代已弃用的UIScreen.main，确保代码的兼容性和未来可维护性
