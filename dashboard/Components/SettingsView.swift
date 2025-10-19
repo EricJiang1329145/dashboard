@@ -18,6 +18,9 @@ struct SettingsView: View {
     /// 状态变量，控制时钟设置子页面是否显示
     @State private var showClockSettings = false
     
+    /// 状态变量，控制位置设置子页面是否显示
+    @State private var showLocationSettings = false
+    
     /// 状态变量，控制未保存更改提醒对话框是否显示
     @State private var showUnsavedAlert = false
     
@@ -98,6 +101,16 @@ struct SettingsView: View {
                                 showClockSettings = true
                             }
                             
+                            // 位置设置入口 - 点击可进入位置设置子页面
+                            SettingItemView(
+                                title: "位置设置",  // 设置项标题
+                                subtitle: "调整位置信息显示格式和外观",  // 设置项副标题
+                                icon: "location.fill"  // 设置项图标
+                            ) {
+                                // 点击时显示位置设置子页面
+                                showLocationSettings = true
+                            }
+                            
                             Spacer()  // 底部留空
                         }
                         .padding()  // 添加内边距
@@ -111,10 +124,23 @@ struct SettingsView: View {
             .sheet(isPresented: $showClockSettings) {
                 ClockSettingsView()  // 显示时钟设置视图
             }
+            
+            // 位置设置子页面 - 以模态页面形式显示
+            .sheet(isPresented: $showLocationSettings) {
+                LocationSettingsView()  // 显示位置设置视图
+            }
             // 监听时钟设置页面的返回
             .onChange(of: showClockSettings) {
                 if !showClockSettings {
                     // 时钟设置页面关闭时，SettingsView的确认按钮状态会自动更新
+                    // 因为UserSettings.shared的hasUnappliedChanges()会反映最新的临时值状态
+                }
+            }
+            
+            // 监听位置设置页面的返回
+            .onChange(of: showLocationSettings) {
+                if !showLocationSettings {
+                    // 位置设置页面关闭时，SettingsView的确认按钮状态会自动更新
                     // 因为UserSettings.shared的hasUnappliedChanges()会反映最新的临时值状态
                 }
             }

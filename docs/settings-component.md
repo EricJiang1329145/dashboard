@@ -28,6 +28,7 @@ dashboard/Components/UserSettings.swift     # 用户设置管理器
 10. 优化了页面显示方式，确保设置页面仅在指定区域内显示，不会覆盖整个屏幕
 11. 移除了标题栏背景色，使设置页面的圆角效果更加明显
 12. 进一步优化了设置页面的圆角效果：使用RoundedRectangle重新设计了设置页面的背景，确保圆角效果更加明显和美观
+13. 添加日期显示设置：支持在时钟中显示或隐藏日期信息
 
 ### 代码结构
 
@@ -140,33 +141,165 @@ struct SettingsView: View {
 }
 ```
 
+```swift
+import Foundation
+import SwiftUI
+import Combine
+
+/// 用户设置管理器，用于持久化存储设置
+class UserSettings: ObservableObject {
+    static let shared = UserSettings()
+    
+    // 实际应用的设置值
+    @Published var showSeconds: Bool = false {
+        didSet {
+            UserDefaults.standard.set(showSeconds, forKey: "showSeconds")
+        }
+    }
+    
+    @Published var showDate: Bool = false {
+        didSet {
+            UserDefaults.standard.set(showDate, forKey: "showDate")
+        }
+    }
+    
+    @Published var fontSize: CGFloat = 48 {
+        didSet {
+            UserDefaults.standard.set(Float(fontSize), forKey: "fontSize")
+        }
+    }
+    
+    @Published var is24HourFormat: Bool = true {
+        didSet {
+            UserDefaults.standard.set(is24HourFormat, forKey: "is24HourFormat")
+        }
+    }
+    
+    // 新增：时钟颜色设置
+    @Published var clockColor: Color = .primary {
+        didSet {
+            // 将Color转换为Data进行存储
+            if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: UIColor(clockColor), requiringSecureCoding: false) {
+                UserDefaults.standard.set(colorData, forKey: "clockColor")
+            }
+        }
+    }
+    
+    // 临时设置值（用于预览更改）
+    @Published var tempShowSeconds: Bool = false
+    @Published var tempShowDate: Bool = false
+    @Published var tempFontSize: CGFloat = 48
+    @Published var tempIs24HourFormat: Bool = true
+    @Published var tempClockColor: Color = .primary
+
+    private init() {
+        loadSettings()
+        // 初始化临时值为当前设置值
+        syncTempToCurrent()
+    }
+    
+    /// 从UserDefaults加载设置
+    private func loadSettings() {
+        // 加载showSeconds设置
+        showSeconds = UserDefaults.standard.bool(forKey: "showSeconds")
+        
+        // 加载showDate设置
+        showDate = UserDefaults.standard.bool(forKey: "showDate")
+        
+        // 加载fontSize设置，确保默认值为48
+        let savedFontSize = UserDefaults.standard.float(forKey: "fontSize")
+        fontSize = CGFloat(savedFontSize) > 0 ? CGFloat(savedFontSize) : 48
+        
+        // 加载时间格式设置，默认为24小时制
+        is24HourFormat = UserDefaults.standard.object(forKey: "is24HourFormat") as? Bool ?? true
+        
+        // 加载时钟颜色设置，默认为.primary
+        if let colorData = UserDefaults.standard.data(forKey: "clockColor"),
+           let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
+            clockColor = Color(uiColor)
+        }
+    }
+    
+    /// 重置为默认设置
+    func resetToDefaults() {
+        showSeconds = false
+        showDate = false
+        fontSize = 48
+        is24HourFormat = true
+        clockColor = .primary
+        syncTempToCurrent()
+    }
+    
+    /// 同步临时值到当前值
+    func syncTempToCurrent() {
+        tempShowSeconds = showSeconds
+        tempShowDate = showDate
+        tempFontSize = fontSize
+        tempIs24HourFormat = is24HourFormat
+        tempClockColor = clockColor
+    }
+    
+    /// 应用临时设置
+    func applyTempSettings() {
+        showSeconds = tempShowSeconds
+        showDate = tempShowDate
+        fontSize = tempFontSize
+        is24HourFormat = tempIs24HourFormat
+        clockColor = tempClockColor
+    }
+    
+    /// 重置临时值到当前值
+    func resetTempToCurrent() {
+        tempShowSeconds = showSeconds
+        tempShowDate = showDate
+        tempFontSize = fontSize
+        tempIs24HourFormat = is24HourFormat
+        tempClockColor = clockColor
+    }
+    
+    /// 检查是否有未应用的更改
+    func hasUnappliedChanges() -> Bool {
+        return showSeconds != tempShowSeconds || 
+               showDate != tempShowDate ||
+               fontSize != tempFontSize || 
+               is24HourFormat != tempIs24HourFormat ||
+               !isColorEqual(clockColor, tempClockColor)
+    }
+}
+```
+
 ## 使用方法
 
-设置组件通过 `ContentView` 调用，使用共享的UserSettings实例：
+`SettingsView` 使用 `UserSettings.shared` 单例管理设置，无需传递参数：
 
 ```swift
-@ObservedObject private var userSettings = UserSettings.shared
-
-SettingsView(isVisible: $isSettingsVisible)
+struct ParentView: View {
+    var body: some View {
+        SettingsView()
+    }
+}
 ```
 
 设置确认机制：
-- 所有设置修改都存储在临时值中（tempShowSeconds, tempFontSize）
-- 只有点击确认按钮才会将临时值应用到实际设置
-- 如果直接关闭设置页面而未点击确认，修改将不会被应用
+1. 临时值存储：所有修改先保存到临时属性（tempShowSeconds、tempShowDate、tempFontSize等）
+2. 统一确认：确认按钮仅在总设置页面（SettingsView）提供
+3. 状态保持：返回总设置页面时保留临时值，用户可在总页面确认或取消
+4. 取消修改：直接关闭总设置页面会显示提醒，可选择保存、放弃或取消操作
+
+日期显示设置使用示例：
+```swift
+// 在视图中使用日期显示设置
+if UserSettings.shared.showDate {
+    Text("今天是美好的一天")
+}
+```
 
 ## 功能特性
 
-1. **统一设置管理**：通过UserSettings.shared单例管理所有设置
-2. **子页面导航**：提供时钟设置等子页面的入口
-3. **临时值机制**：使用临时属性存储用户修改，支持预览效果
-4. **统一确认机制**：仅在总设置页面提供确认功能（蓝色背景），移除子页面确认按钮
-5. **智能状态跟踪**：自动检测是否有未应用的更改
-6. **未保存退出提醒**：提供取消、放弃更改、保存更改三个选项
-7. **取消保护**：未点击确认直接关闭不会应用修改
-8. **生命周期同步**：视图出现时同步临时值，确保一致性
-9. **数据持久化**：设置项保存在UserDefaults中，不随应用关闭而重置
-10. **24小时制显示**：仅支持24小时制时间显示
-11. **无背景覆盖层**：删除了设置页面的半透明黑色背景覆盖层，使设置页面更加简洁
-12. **详细注释**：为SettingsView添加了详细的中文注释，便于理解和维护
-116| ```
+1. **时间格式设置**：支持24小时制时间显示
+2. **时钟外观定制**：支持字体大小调节和时钟颜色自定义
+3. **设置预览机制**：使用临时值实现实时预览，确认后应用更改
+4. **统一确认流程**：仅在主设置页面提供确认按钮，避免重复确认
+5. **未保存提醒**：未保存更改直接关闭时提醒用户选择操作
+6. **状态同步**：视图出现时同步临时值，确保一致性
+7. **日期显示控制**：支持显示或隐藏时钟中的日期信息

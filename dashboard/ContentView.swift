@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import CoreLocation
 
 struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -21,9 +22,14 @@ struct ContentView: View {
                 // 主背景
                 colorScheme == .dark ? Color.black : Color.white
                 
-                // 时钟组件放置在左上角
-                ClockView(showSeconds: $userSettings.showSeconds, fontSize: $userSettings.fontSize, is24HourFormat: $userSettings.is24HourFormat, clockColor: $userSettings.clockColor)
-                    .padding()
+                VStack(alignment: .leading, spacing: 20) {
+                    // 时钟组件放置在左上角
+                    ClockView(showSeconds: $userSettings.showSeconds, showDate: $userSettings.showDate, fontSize: $userSettings.fontSize, is24HourFormat: $userSettings.is24HourFormat, clockColor: $userSettings.clockColor)
+                    
+                    // 位置组件放置在时钟下方
+                    LocationView(showLocation: $userSettings.showLocation, fontSize: $userSettings.fontSize, locationColor: $userSettings.locationColor)
+                }
+                .padding()
                 
                 // 设置按钮放置在右上角
                 Button(action: {

@@ -4,6 +4,10 @@
 
 ## 最近更新
 
+- **添加位置信息显示功能**：新增位置组件，可显示当前位置的经纬度信息，用户可以在设置中控制是否显示位置信息及自定义颜色
+- **修复日期颜色显示**：调整日期颜色逻辑，使其与AM/PM标识颜色保持一致（默认状态为灰色，自定义颜色时降低透明度）
+- **修复ClockView组件**：添加showDate参数支持，确保日期显示功能正常工作
+- **添加日期显示功能**：时钟组件现在支持显示日期，用户可以在设置中控制是否显示日期
 - **设置页面UI优化**：将液态玻璃效果从设置内容区域移除，应用到设置标题上，解决排版问题
 - **时钟颜色自定义功能**：支持多种预设颜色和自定义颜色选择器，用户可以个性化时钟显示效果
 - **设置确认机制重构**：统一了设置确认流程，防止用户误操作丢失设置
@@ -14,11 +18,22 @@
 ## 功能特性
 
 - 🕐 实时数字时钟显示（支持12/24小时制切换）
+- 📅 日期显示（可选）
 - 🎨 自定义时钟颜色（支持多种预设颜色和自定义颜色选择）
 - ⚙️ 设置面板（可通过右上角齿轮图标访问）
 - ✨ Liquid Glass 设计风格
 - 📱 响应式设计，适配不同屏幕尺寸
 - 💾 设置持久化存储（设置项会在应用重启后保留）
+
+## 功能特性
+
+- 📍 实时显示当前位置的经纬度信息
+- 🏙️ 显示当前位置所在城市
+- 🖌️ 可自定义字体大小和颜色
+- 🎛️ 可通过设置面板控制显示/隐藏
+- 🔄 支持点击组件重新加载位置信息
+- 🧩 与现有设置机制无缝集成
+- 📚 完整的文档说明
 
 ##### 最新更新
 - **重构设置确认机制**：将设置页的所有参数设置为存储在应用数据内，调整开关后对勾变成可用状态，只有打勾才能应用修改，否则不应用修改
@@ -43,17 +58,21 @@
 
 1. **ContentView** - 主视图，包含时钟组件和设置按钮
 2. **ClockView** - 数字时钟组件，显示当前时间
-3. **SettingsView** - 设置面板组件，提供各种自定义选项
-4. **ClockSettingsView** - 时钟设置子页面，用于配置时钟相关参数
-5. **UserSettings** - 用户设置管理器，负责设置的加载、保存和持久化
+3. **LocationView** - 位置信息组件，显示当前位置的经纬度
+4. **SettingsView** - 设置面板组件，提供各种自定义选项
+5. **ClockSettingsView** - 时钟设置子页面，用于配置时钟相关参数
+6. **LocationSettingsView** - 位置设置子页面，用于配置位置信息相关参数
+7. **UserSettings** - 用户设置管理器，负责设置的加载、保存和持久化
 
 ### 组件交互关系
 
 ```
 ContentView (主视图)
 ├── ClockView (时钟组件)
+├── LocationView (位置信息组件)
 └── SettingsView (设置面板)
-    └── ClockSettingsView (时钟设置子页面)
+    ├── ClockSettingsView (时钟设置子页面)
+    └── LocationSettingsView (位置设置子页面)
 
 UserSettings (共享设置管理器)
 ├── showSeconds (实际应用的秒数显示设置)
@@ -63,25 +82,22 @@ UserSettings (共享设置管理器)
 └── 设置应用/重置方法
 ```
 
-## 技术实现
+##### 技术实现
 
 - 使用 SwiftUI 构建用户界面
 - 使用 @Binding 实现组件间数据传递
 - 使用 @ObservedObject 和 UserDefaults 实现数据持久化
 - 使用 Liquid Glass 效果增强视觉体验
 - 使用 MVVM 架构模式组织代码结构
+- 使用 CoreLocation 获取设备位置信息
+- 在 Info.plist 中配置位置权限说明，确保应用能正确获取位置信息
 
 ## 使用方法
 
-1. 运行项目
-2. 查看实时数字时钟显示
-3. 点击右上角齿轮图标打开设置面板
-4. 在设置面板中调整各项参数
-5. 点击确认按钮（打勾图标）应用修改（仅在设置项有修改时可用）
-6. 如果不点击确认按钮直接关闭设置页面，修改将不会被应用
-7. 关闭应用后重新打开，设置项将保持上次确认保存的状态
-8. 删除了设置页面的半透明黑色背景覆盖层，使设置页面更加简洁
-9. 为SettingsView添加了详细的中文注释，提高代码可读性和可维护性
+1. 点击屏幕右上角的设置按钮打开设置面板
+2. 在设置面板中可以调整时钟和位置相关参数
+3. 修改设置后点击确认按钮保存更改
+4. 点击关闭按钮或在设置面板外点击可关闭设置面板
 
 ## 开发说明
 
@@ -90,27 +106,33 @@ UserSettings (共享设置管理器)
 ```
 Dashboard/
 ├── Components/
-│   ├── ClockView.swift           # 数字时钟组件
-│   ├── SettingsView.swift        # 设置面板组件
-│   └── ClockSettingsView.swift   # 时钟设置子页面
-├── Models/
-│   └── UserSettings.swift        # 用户设置管理器
+│   ├── ContentView.swift
+│   ├── ClockView.swift
+│   ├── LocationView.swift
+│   ├── SettingsView.swift
+│   ├── ClockSettingsView.swift
+│   └── LocationSettingsView.swift
+├── Managers/
+│   └── UserSettings.swift
 ├── Resources/
-│   └── Assets.xcassets/          # 应用资源文件
-├── Preview Content/
-│   └── Preview Assets.xcassets/  # 预览资源文件
-└── dashboardApp.swift            # 应用程序入口点
+│   └── Info.plist
+├── Assets.xcassets/
+└── Preview Content/
+    └── Preview Assets.xcassets/
 ```
 
-### 设计理念
+### 代码规范
 
-本项目遵循以下设计理念：
+- 使用SwiftUI框架进行开发
+- 遵循MVVM架构模式
+- 使用ObservableObject管理状态
+- 使用UserDefaults进行数据持久化
+- 遵循Swift命名规范
 
-1. **简洁性** - 界面设计简洁明了，避免不必要的复杂性
-2. **一致性** - 所有组件保持统一的设计风格和交互方式
-3. **可扩展性** - 采用模块化设计，便于后续功能扩展
-4. **用户体验** - 注重用户体验，提供流畅的操作流程
-5. **性能优化** - 优化组件性能，确保应用运行流畅
+## 详细文档
+
+- [位置组件详细说明](docs/location-component.md)
+- [位置设置组件详细说明](docs/location-settings.md)
 
 ## 文档
 

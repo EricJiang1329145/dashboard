@@ -20,6 +20,18 @@ class UserSettings: ObservableObject {
         }
     }
     
+    @Published var showDate: Bool = false {
+        didSet {
+            UserDefaults.standard.set(showDate, forKey: "showDate")
+        }
+    }
+    
+    @Published var showLocation: Bool = false {
+        didSet {
+            UserDefaults.standard.set(showLocation, forKey: "showLocation")
+        }
+    }
+    
     @Published var fontSize: CGFloat = 48 {
         didSet {
             UserDefaults.standard.set(Float(fontSize), forKey: "fontSize")
@@ -42,11 +54,24 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // 新增：位置信息颜色设置
+    @Published var locationColor: Color = .primary {
+        didSet {
+            // 将Color转换为Data进行存储
+            if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: UIColor(locationColor), requiringSecureCoding: false) {
+                UserDefaults.standard.set(colorData, forKey: "locationColor")
+            }
+        }
+    }
+    
     // 临时设置值（用于预览更改）
     @Published var tempShowSeconds: Bool = false
+    @Published var tempShowDate: Bool = false
+    @Published var tempShowLocation: Bool = false
     @Published var tempFontSize: CGFloat = 48
     @Published var tempIs24HourFormat: Bool = true
     @Published var tempClockColor: Color = .primary
+    @Published var tempLocationColor: Color = .primary
     
     private init() {
         loadSettings()
@@ -58,6 +83,12 @@ class UserSettings: ObservableObject {
     private func loadSettings() {
         // 加载showSeconds设置
         showSeconds = UserDefaults.standard.bool(forKey: "showSeconds")
+        
+        // 加载showDate设置
+        showDate = UserDefaults.standard.bool(forKey: "showDate")
+        
+        // 加载showLocation设置
+        showLocation = UserDefaults.standard.bool(forKey: "showLocation")
         
         // 加载fontSize设置，确保默认值为48
         let savedFontSize = UserDefaults.standard.float(forKey: "fontSize")
@@ -71,47 +102,68 @@ class UserSettings: ObservableObject {
            let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
             clockColor = Color(uiColor)
         }
+        
+        // 加载位置信息颜色设置，默认为.primary
+        if let colorData = UserDefaults.standard.data(forKey: "locationColor"),
+           let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
+            locationColor = Color(uiColor)
+        }
     }
     
     /// 重置为默认设置
     func resetToDefaults() {
         showSeconds = false
+        showDate = false
+        showLocation = false
         fontSize = 48
         is24HourFormat = true
         clockColor = .primary
+        locationColor = .primary
         syncTempToCurrent()
     }
     
     /// 同步临时值到当前值
     func syncTempToCurrent() {
         tempShowSeconds = showSeconds
+        tempShowDate = showDate
+        tempShowLocation = showLocation
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
         tempClockColor = clockColor
+        tempLocationColor = locationColor
     }
     
     /// 应用临时设置
     func applyTempSettings() {
         showSeconds = tempShowSeconds
+        showDate = tempShowDate
+        showLocation = tempShowLocation
         fontSize = tempFontSize
         is24HourFormat = tempIs24HourFormat
         clockColor = tempClockColor
+        locationColor = tempLocationColor
     }
     
     /// 重置临时值到当前值
     func resetTempToCurrent() {
         tempShowSeconds = showSeconds
+        tempShowDate = showDate
+        tempShowLocation = showLocation
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
         tempClockColor = clockColor
+        tempLocationColor = locationColor
     }
     
     /// 检查是否有未应用的更改
     func hasUnappliedChanges() -> Bool {
         return showSeconds != tempShowSeconds || 
+               showDate != tempShowDate ||
+               showLocation != tempShowLocation ||
                fontSize != tempFontSize || 
                is24HourFormat != tempIs24HourFormat ||
-               !isColorEqual(clockColor, tempClockColor)
+               !isColorEqual(clockColor, tempClockColor) ||
+               !isColorEqual(locationColor, tempLocationColor)
     }
     
     /// 比较两个Color是否相等（Color不直接支持==比较）

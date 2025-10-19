@@ -2,7 +2,7 @@
 
 ## 功能说明
 
-时钟设置组件允许用户自定义时钟的显示格式和外观，包括秒钟显示、字体大小和时钟颜色自定义（预设颜色和自定义颜色选择器）。UI设计上已将液态玻璃效果从设置内容区域移除，应用到设置标题上，解决了排版问题。
+时钟设置组件允许用户自定义时钟的显示格式和外观，包括秒钟显示、日期显示、字体大小和时钟颜色自定义（预设颜色和自定义颜色选择器）。UI设计上已将液态玻璃效果从设置内容区域移除，应用到设置标题上，解决了排版问题。
 
 ## 实现细节
 
@@ -25,6 +25,7 @@ dashboard/Components/ClockSettingsView.swift
 9. 返回时状态保持：返回SettingsView时保留临时值，让总页面处理确认逻辑
 10. 支持12/24小时制切换显示
 11. UI优化：液态玻璃效果应用于设置标题而非内容区域，解决了排版和覆盖问题
+12. 添加日期显示开关：使用Toggle控件实现日期显示的开关控制
 
 ### 代码结构
 
@@ -92,6 +93,13 @@ struct ClockSettingsView: View {
                         HStack {
                             Image(systemName: "stopwatch")
                             Text("显示秒钟")
+                        }
+                    }
+                    
+                    Toggle(isOn: $userSettings.tempShowDate) {
+                        HStack {
+                            Image(systemName: "calendar")
+                            Text("显示日期")
                         }
                     }
                 }

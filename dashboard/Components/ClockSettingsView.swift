@@ -115,6 +115,16 @@ struct ClockSettingsView: View {
                                         .font(.system(size: 16))
                                 }
                             }
+                            
+                            // 日期显示开关
+                            Toggle(isOn: $userSettings.tempShowDate) {
+                                HStack {
+                                    Image(systemName: "calendar")
+                                        .foregroundColor(.blue)
+                                    Text("显示日期")
+                                        .font(.system(size: 16))
+                                }
+                            }
                         }
                         .frame(maxWidth: .infinity * 0.85, alignment: .leading)  // 限制宽度为85%
                     }

@@ -12,6 +12,7 @@ import Combine
 struct ClockView: View {
     @State private var currentTime = Date()
     @Binding var showSeconds: Bool
+    @Binding var showDate: Bool
     @Binding var fontSize: CGFloat
     @Binding var is24HourFormat: Bool
     @Binding var clockColor: Color
@@ -46,11 +47,18 @@ struct ClockView: View {
         formatter.dateFormat = "ss"
         return formatter
     }()
+    
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy年MM月dd日"
+        return formatter
+    }()
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
-    init(showSeconds: Binding<Bool>, fontSize: Binding<CGFloat>, is24HourFormat: Binding<Bool>, clockColor: Binding<Color>) {
+    init(showSeconds: Binding<Bool>, showDate: Binding<Bool>, fontSize: Binding<CGFloat>, is24HourFormat: Binding<Bool>, clockColor: Binding<Color>) {
         self._showSeconds = showSeconds
+        self._showDate = showDate
         self._fontSize = fontSize
         self._is24HourFormat = is24HourFormat
         self._clockColor = clockColor
@@ -59,46 +67,56 @@ struct ClockView: View {
     // 默认初始化方法，用于预览
     init() {
         self._showSeconds = Binding.constant(false)
+        self._showDate = Binding.constant(true)
         self._fontSize = Binding.constant(48)
         self._is24HourFormat = Binding.constant(true)
         self._clockColor = Binding.constant(.primary)
     }
     
     var body: some View {
-        HStack(spacing: 8) {
-            // 小时部分
-            Text(formatHour(currentTime))
-                .font(.system(size: fontSize, weight: .medium, design: .monospaced))
-                .foregroundColor(clockColor)
-            
-            Text(":")
-                .font(.system(size: fontSize, weight: .medium, design: .monospaced))
-                .foregroundColor(clockColor)
-            
-            // 分钟部分
-            Text(formatMinute(currentTime))
-                .font(.system(size: fontSize, weight: .medium, design: .monospaced))
-                .foregroundColor(clockColor)
-            
-            // 秒钟部分（可选）
-            if showSeconds {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                // 小时部分
+                Text(formatHour(currentTime))
+                    .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+                    .foregroundColor(clockColor)
+                
                 Text(":")
                     .font(.system(size: fontSize, weight: .medium, design: .monospaced))
                     .foregroundColor(clockColor)
                 
-                Text(formatSecond(currentTime))
+                // 分钟部分
+                Text(formatMinute(currentTime))
                     .font(.system(size: fontSize, weight: .medium, design: .monospaced))
                     .foregroundColor(clockColor)
+                
+                // 秒钟部分（可选）
+                if showSeconds {
+                    Text(":")
+                        .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+                        .foregroundColor(clockColor)
+                    
+                    Text(formatSecond(currentTime))
+                        .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+                        .foregroundColor(clockColor)
+                }
+                
+                // AM/PM标识（仅12小时制）
+                if !is24HourFormat {
+                    Text(formatAmPm(currentTime))
+                        .font(.system(size: fontSize * 0.5, weight: .medium, design: .monospaced))
+                        .foregroundColor(clockColor == .primary ? .gray : clockColor.opacity(0.7)) // 自定义颜色时降低透明度
+                        .padding(.leading, 4)
+                        .alignmentGuide(.top) { _ in 0 } // 与时间顶部对齐
+                        .offset(y: -fontSize * 0.25) // 向上偏移，靠上对齐
+                }
             }
             
-            // AM/PM标识（仅12小时制）
-            if !is24HourFormat {
-                Text(formatAmPm(currentTime))
+            // 日期显示（可选）
+            if showDate {
+                Text(formatDate(currentTime))
                     .font(.system(size: fontSize * 0.5, weight: .medium, design: .monospaced))
-                    .foregroundColor(clockColor == .primary ? .gray : clockColor.opacity(0.7)) // 自定义颜色时降低透明度
-                    .padding(.leading, 4)
-                    .alignmentGuide(.top) { _ in 0 } // 与时间顶部对齐
-                    .offset(y: -fontSize * 0.25) // 向上偏移，靠上对齐
+                    .foregroundColor(clockColor == .primary ? .gray : clockColor.opacity(0.7))
             }
         }
         .padding(20)
@@ -130,6 +148,11 @@ struct ClockView: View {
     /// 格式化AM/PM显示
     private func formatAmPm(_ date: Date) -> String {
         return Self.amPmFormatter.string(from: date).uppercased()
+    }
+    
+    /// 格式化日期显示
+    private func formatDate(_ date: Date) -> String {
+        return Self.dateFormatter.string(from: date)
     }
 }
 
