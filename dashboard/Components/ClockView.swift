@@ -65,12 +65,12 @@ struct ClockView: View {
     }
     
     // 默认初始化方法，用于预览
-    init() {
-        self._showSeconds = Binding.constant(false)
-        self._showDate = Binding.constant(true)
-        self._fontSize = Binding.constant(48)
-        self._is24HourFormat = Binding.constant(true)
-        self._clockColor = Binding.constant(.primary)
+    init(showSeconds: Bool = false, showDate: Bool = true, fontSize: CGFloat = 48, is24HourFormat: Bool = true, clockColor: Color = .primary) {
+        self._showSeconds = Binding.constant(showSeconds)
+        self._showDate = Binding.constant(showDate)
+        self._fontSize = Binding.constant(fontSize)
+        self._is24HourFormat = Binding.constant(is24HourFormat)
+        self._clockColor = Binding.constant(clockColor)
     }
     
     var body: some View {

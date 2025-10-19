@@ -89,12 +89,21 @@ struct ClockView: View {
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
-    init(showSeconds: Binding<Bool>, fontSize: Binding<CGFloat>, 
-         is24HourFormat: Binding<Bool>, clockColor: Binding<Color>) {
+    init(showSeconds: Binding<Bool>, showDate: Binding<Bool>, fontSize: Binding<CGFloat>, is24HourFormat: Binding<Bool>, clockColor: Binding<Color>) {
         self._showSeconds = showSeconds
+        self._showDate = showDate
         self._fontSize = fontSize
         self._is24HourFormat = is24HourFormat
         self._clockColor = clockColor
+    }
+    
+    // 默认初始化方法，用于预览，接受默认参数
+    init(showSeconds: Bool = false, showDate: Bool = true, fontSize: CGFloat = 48, is24HourFormat: Bool = true, clockColor: Color = .primary) {
+        self._showSeconds = Binding.constant(showSeconds)
+        self._showDate = Binding.constant(showDate)
+        self._fontSize = Binding.constant(fontSize)
+        self._is24HourFormat = Binding.constant(is24HourFormat)
+        self._clockColor = Binding.constant(clockColor)
     }
     
     // 格式化日期显示
