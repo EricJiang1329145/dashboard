@@ -7,6 +7,60 @@
 
 import SwiftUI
 
+/// 颜色按钮组件，用于选择预设颜色
+struct ColorButton: View {
+    var color: Color
+    var label: String
+    @Binding var selectedColor: Color
+    
+    // 判断颜色是否相等的辅助方法
+    private func isSelected() -> Bool {
+        // 对于.primary颜色的特殊处理
+        if color == .primary && selectedColor == .primary {
+            return true
+        }
+        
+        // 转换为UIColor进行比较
+        let uiColor1 = UIColor(color)
+        let uiColor2 = UIColor(selectedColor)
+        
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        
+        uiColor1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        uiColor2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
+    }
+    
+    var body: some View {
+        VStack {
+            Button(action: {
+                selectedColor = color
+            }) {
+                Circle()
+                    .fill(color)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        isSelected() ? 
+                            Circle().stroke(Color.white, lineWidth: 3) // 选中状态边框
+                                .shadow(radius: 2)
+                            : nil
+                    )
+                    .padding(4)
+                    .background(isSelected() ? Color.blue : Color.clear)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .padding(.top, 4)
+        }
+    }
+}
+
 /// 时钟设置子页面
 struct ClockSettingsView: View {
     @ObservedObject private var userSettings = UserSettings.shared
@@ -98,6 +152,38 @@ struct ClockSettingsView: View {
                             Slider(value: $userSettings.tempFontSize, in: 20...80, step: 2)
                                 .accentColor(.blue)
                         }
+                    }
+                    
+                    // 新增：时钟颜色设置
+                    SectionView(title: "时钟颜色") {
+                        VStack(alignment: .leading, spacing: 15) {
+                            // 预设颜色选择器
+                            Text("预设颜色:")
+                                .font(.system(size: 16))
+                            
+                            HStack(spacing: 12) {
+                                // 主要颜色（跟随系统）
+                                ColorButton(color: .primary, label: "默认", selectedColor: $userSettings.tempClockColor)
+                                
+                                // 常用颜色选项
+                                ColorButton(color: .red, label: "红色", selectedColor: $userSettings.tempClockColor)
+                                ColorButton(color: .blue, label: "蓝色", selectedColor: $userSettings.tempClockColor)
+                                ColorButton(color: .green, label: "绿色", selectedColor: $userSettings.tempClockColor)
+                                ColorButton(color: .orange, label: "橙色", selectedColor: $userSettings.tempClockColor)
+                                ColorButton(color: .purple, label: "紫色", selectedColor: $userSettings.tempClockColor)
+                            }
+                            .padding(.vertical, 8)
+                            
+                            // 自定义颜色选择器（iOS 14及以上）
+                            Group {
+                                Text("自定义颜色:")
+                                    .font(.system(size: 16))
+                                    .padding(.top, 8)
+                                
+                                ColorPicker("选择颜色", selection: $userSettings.tempClockColor, supportsOpacity: false)
+                                    .padding(.top, 4)
+                            }
+                        }
                         .frame(maxWidth: .infinity * 0.85, alignment: .leading)  // 限制宽度为85%
                     }
                     
@@ -137,6 +223,10 @@ struct SectionView<Content: View>: View {
             Text(title)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .glassEffect(.regular)
+                .cornerRadius(8)
             
             content
                 .padding()
@@ -144,7 +234,6 @@ struct SectionView<Content: View>: View {
                 .background(
                     Color(.systemGray6)
                         .opacity(0.5)
-                        .glassEffect(.regular)
                 )
                 .cornerRadius(12)
         }

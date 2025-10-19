@@ -32,10 +32,21 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // 新增：时钟颜色设置
+    @Published var clockColor: Color = .primary {
+        didSet {
+            // 将Color转换为Data进行存储
+            if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: UIColor(clockColor), requiringSecureCoding: false) {
+                UserDefaults.standard.set(colorData, forKey: "clockColor")
+            }
+        }
+    }
+    
     // 临时设置值（用于预览更改）
     @Published var tempShowSeconds: Bool = false
     @Published var tempFontSize: CGFloat = 48
     @Published var tempIs24HourFormat: Bool = true
+    @Published var tempClockColor: Color = .primary
     
     private init() {
         loadSettings()
@@ -54,6 +65,12 @@ class UserSettings: ObservableObject {
         
         // 加载时间格式设置，默认为24小时制
         is24HourFormat = UserDefaults.standard.object(forKey: "is24HourFormat") as? Bool ?? true
+        
+        // 加载时钟颜色设置，默认为.primary
+        if let colorData = UserDefaults.standard.data(forKey: "clockColor"),
+           let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
+            clockColor = Color(uiColor)
+        }
     }
     
     /// 重置为默认设置
@@ -61,6 +78,7 @@ class UserSettings: ObservableObject {
         showSeconds = false
         fontSize = 48
         is24HourFormat = true
+        clockColor = .primary
         syncTempToCurrent()
     }
     
@@ -69,6 +87,7 @@ class UserSettings: ObservableObject {
         tempShowSeconds = showSeconds
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
+        tempClockColor = clockColor
     }
     
     /// 应用临时设置
@@ -76,6 +95,7 @@ class UserSettings: ObservableObject {
         showSeconds = tempShowSeconds
         fontSize = tempFontSize
         is24HourFormat = tempIs24HourFormat
+        clockColor = tempClockColor
     }
     
     /// 重置临时值到当前值
@@ -83,10 +103,29 @@ class UserSettings: ObservableObject {
         tempShowSeconds = showSeconds
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
+        tempClockColor = clockColor
     }
     
     /// 检查是否有未应用的更改
     func hasUnappliedChanges() -> Bool {
-        return showSeconds != tempShowSeconds || fontSize != tempFontSize || is24HourFormat != tempIs24HourFormat
+        return showSeconds != tempShowSeconds || 
+               fontSize != tempFontSize || 
+               is24HourFormat != tempIs24HourFormat ||
+               !isColorEqual(clockColor, tempClockColor)
+    }
+    
+    /// 比较两个Color是否相等（Color不直接支持==比较）
+    private func isColorEqual(_ color1: Color, _ color2: Color) -> Bool {
+        // 转换为UIColor进行比较
+        let uiColor1 = UIColor(color1)
+        let uiColor2 = UIColor(color2)
+        
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        
+        uiColor1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        uiColor2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        return r1 == r2 && g1 == g2 && b1 == b2 && a1 == a2
     }
 }

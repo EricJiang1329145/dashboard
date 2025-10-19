@@ -22,7 +22,7 @@ struct ContentView: View {
                 colorScheme == .dark ? Color.black : Color.white
                 
                 // 时钟组件放置在左上角
-                ClockView(showSeconds: $userSettings.showSeconds, fontSize: $userSettings.fontSize, is24HourFormat: $userSettings.is24HourFormat)
+                ClockView(showSeconds: $userSettings.showSeconds, fontSize: $userSettings.fontSize, is24HourFormat: $userSettings.is24HourFormat, clockColor: $userSettings.clockColor)
                     .padding()
                 
                 // 设置按钮放置在右上角

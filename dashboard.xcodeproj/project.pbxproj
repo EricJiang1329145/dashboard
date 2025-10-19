@@ -29,9 +29,22 @@
 		E97050D32E9B8AEF0031EF18 /* dashboardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dashboardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E991C34B2EA4AF4A002D30D1 /* Exceptions for "dashboard" folder in "dashboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E97050BB2E9B8AEE0031EF18 /* dashboard */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E97050BE2E9B8AEE0031EF18 /* dashboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E991C34B2EA4AF4A002D30D1 /* Exceptions for "dashboard" folder in "dashboard" target */,
+			);
 			path = dashboard;
 			sourceTree = "<group>";
 		};
@@ -399,7 +412,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XKG66VCX74;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				"INFOPLIST_FILE[sdk=*]" = /Users/ericjiang/Desktop/pgms/dashboard/dashboard/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -431,7 +445,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = XKG66VCX74;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				"INFOPLIST_FILE[sdk=*]" = /Users/ericjiang/Desktop/pgms/dashboard/dashboard/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
