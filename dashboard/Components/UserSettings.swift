@@ -9,6 +9,26 @@ import Foundation
 import SwiftUI
 import Combine
 
+/// 主题模式枚举
+enum Theme: String, CaseIterable, Identifiable {
+    case system
+    case dark
+    case light
+    
+    var id: String { self.rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .system:
+            return "跟随系统"
+        case .dark:
+            return "深色"
+        case .light:
+            return "浅色"
+        }
+    }
+}
+
 /// 用户设置管理器，用于持久化存储设置
 class UserSettings: ObservableObject {
     static let shared = UserSettings()
@@ -81,6 +101,13 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // 新增：主题设置
+    @Published var theme: Theme = .system {
+        didSet {
+            UserDefaults.standard.set(theme.rawValue, forKey: "theme")
+        }
+    }
+    
 
     
     // 临时设置值（用于预览更改）
@@ -93,6 +120,7 @@ class UserSettings: ObservableObject {
     @Published var tempClockColor: Color = .primary
     @Published var tempLocationColor: Color = .primary
     @Published var tempWeatherColor: Color = .primary
+    @Published var tempTheme: Theme = .system
     
     private init() {
         loadSettings()
@@ -138,6 +166,12 @@ class UserSettings: ObservableObject {
            let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
             weatherColor = Color(uiColor)
         }
+        
+        // 加载主题设置，默认为.system
+        if let themeString = UserDefaults.standard.string(forKey: "theme"),
+           let savedTheme = Theme(rawValue: themeString) {
+            theme = savedTheme
+        }
     }
     
     /// 重置为默认设置
@@ -151,6 +185,7 @@ class UserSettings: ObservableObject {
         clockColor = .primary
         locationColor = .primary
         weatherColor = .primary
+        theme = .system
         syncTempToCurrent()
     }
     
@@ -165,6 +200,7 @@ class UserSettings: ObservableObject {
         tempClockColor = clockColor
         tempLocationColor = locationColor
         tempWeatherColor = weatherColor
+        tempTheme = theme
     }
     
     /// 应用临时设置
@@ -178,6 +214,7 @@ class UserSettings: ObservableObject {
         clockColor = tempClockColor
         locationColor = tempLocationColor
         weatherColor = tempWeatherColor
+        theme = tempTheme
     }
     
     /// 重置临时值到当前值
@@ -191,6 +228,7 @@ class UserSettings: ObservableObject {
         tempClockColor = clockColor
         tempLocationColor = locationColor
         tempWeatherColor = weatherColor
+        tempTheme = theme
     }
     
     /// 检查是否有未应用的更改
@@ -203,7 +241,8 @@ class UserSettings: ObservableObject {
                is24HourFormat != tempIs24HourFormat ||
                !isColorEqual(clockColor, tempClockColor) ||
                !isColorEqual(locationColor, tempLocationColor) ||
-               !isColorEqual(weatherColor, tempWeatherColor)
+               !isColorEqual(weatherColor, tempWeatherColor) ||
+               theme != tempTheme
     }
     
     /// 比较两个Color是否相等（Color不直接支持==比较）

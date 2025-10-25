@@ -10,17 +10,34 @@ import UIKit
 import CoreLocation
 
 struct ContentView: View {
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) var systemColorScheme
     @State private var isSettingsVisible = false
     
-    // 时钟设置状态
+    // 用户设置状态
     @ObservedObject private var userSettings = UserSettings.shared
+    
+    // 计算当前应用的主题
+    private var currentTheme: ColorScheme? {
+        switch userSettings.theme {
+        case .system:
+            return nil  // 使用系统主题
+        case .dark:
+            return .dark
+        case .light:
+            return .light
+        }
+    }
+    
+    // 计算当前的颜色方案
+    private var currentColorScheme: ColorScheme {
+        return currentTheme ?? systemColorScheme
+    }
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
                 // 主背景
-                colorScheme == .dark ? Color.black : Color.white
+                currentColorScheme == .dark ? Color.black : Color.white
                 
                 VStack(alignment: .leading, spacing: 20) {
                     // 时钟组件放置在左上角
@@ -66,8 +83,10 @@ struct ContentView: View {
             }
         }
         .edgesIgnoringSafeArea(.all)
-        .statusBar(hidden: true)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsVisible)
+            .statusBar(hidden: true)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSettingsVisible)
+            // 应用主题设置
+            .preferredColorScheme(currentTheme)
     }
 }
 
@@ -86,5 +105,5 @@ struct VisualEffectView: UIViewRepresentable {
 
 #Preview {
     ContentView()
-        .preferredColorScheme(.dark)
+        .environmentObject(UserSettings.shared)
 }

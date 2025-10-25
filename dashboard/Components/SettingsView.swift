@@ -24,6 +24,9 @@ struct SettingsView: View {
     /// 状态变量，控制天气设置子页面是否显示
     @State private var showWeatherSettings = false
     
+    /// 状态变量，控制主题设置子页面是否显示
+    @State private var showThemeSettings = false
+    
     /// 状态变量，控制未保存更改提醒对话框是否显示
     @State private var showUnsavedAlert = false
     
@@ -123,6 +126,16 @@ struct SettingsView: View {
                                 // 点击时显示天气设置子页面
                                 showWeatherSettings = true
                             }
+                            
+                            // 主题设置入口 - 点击可进入主题设置子页面
+                            SettingItemView(
+                                title: "主题设置",  // 设置项标题
+                                subtitle: "选择跟随系统、深色或浅色模式",  // 设置项副标题
+                                icon: "paintbrush.fill"  // 设置项图标
+                            ) {
+                                // 点击时显示主题设置子页面
+                                showThemeSettings = true
+                            }
 
                             Spacer()  // 底部留空
                         }
@@ -147,6 +160,11 @@ struct SettingsView: View {
             .sheet(isPresented: $showWeatherSettings) {
                 WeatherSettingsView()  // 显示天气设置视图
             }
+            
+            // 主题设置子页面 - 以模态页面形式显示
+            .sheet(isPresented: $showThemeSettings) {
+                ThemeSettingsView()  // 显示主题设置视图
+            }
             // 监听时钟设置页面的返回
             .onChange(of: showClockSettings) {
                 if !showClockSettings {
@@ -167,6 +185,14 @@ struct SettingsView: View {
             .onChange(of: showWeatherSettings) {
                 if !showWeatherSettings {
                     // 天气设置页面关闭时，SettingsView的确认按钮状态会自动更新
+                    // 因为UserSettings.shared的hasUnappliedChanges()会反映最新的临时值状态
+                }
+            }
+            
+            // 监听主题设置页面的返回
+            .onChange(of: showThemeSettings) {
+                if !showThemeSettings {
+                    // 主题设置页面关闭时，SettingsView的确认按钮状态会自动更新
                     // 因为UserSettings.shared的hasUnappliedChanges()会反映最新的临时值状态
                 }
             }
