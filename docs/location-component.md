@@ -107,6 +107,24 @@ geocoder.reverseGeocodeLocation(location) { placemarks, error in
     } else if let administrativeArea = placemark.administrativeArea {
         self.city = administrativeArea
     } else {
+        // 使用推荐的placemark属性替代废弃的addressDictionary
+        var addressInfo = [String]()
+        
+        if let thoroughfare = placemark.thoroughfare {
+            addressInfo.append(thoroughfare)
+        }
+        if let subThoroughfare = placemark.subThoroughfare {
+            addressInfo.append(subThoroughfare)
+        }
+        if let subLocality = placemark.subLocality {
+            addressInfo.append(subLocality)
+        }
+        
+        // 打印地址信息用于调试
+        if !addressInfo.isEmpty {
+            print("地址信息: \(addressInfo.joined(separator: ", "))")
+        }
+        
         self.city = "未知城市"
     }
 }
@@ -164,6 +182,12 @@ LocationView(
 2. 位置信息获取可能需要一些时间，初次显示可能会有延迟
 3. 在模拟器中测试时，需要手动设置位置信息
 4. 为了节省电池电量，组件会在不显示时停止位置更新
+
+### 错误状态显示
+
+- 位置获取失败：当无法获取位置时，经纬度显示"获取失败"，城市显示"未知城市"
+- 无权限：当用户拒绝位置权限时，经纬度显示"无权限"，城市显示"未知城市"
+- 未知状态：当遇到未知的授权状态时，经纬度显示"未知状态"，城市显示"未知城市"
 
 ## 故障排除
 

@@ -117,17 +117,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("反向地理编码失败: \(error)")
-                    self?.city = "获取失败"
+                    print("反向地理编码错误: \(error)")
+                    self?.city = "未知城市"
                     return
                 }
                 
                 guard let placemark = placemarks?.first else {
-                    self?.city = "未知位置"
+                    self?.city = "未知城市"
                     return
                 }
                 
-                // 尝试获取城市信息，如果城市为空则尝试获取其他行政区域信息
+                // 尝试获取城市信息，按照优先级尝试不同字段
                 if let city = placemark.locality {
                     self?.city = city
                 } else if let subAdministrativeArea = placemark.subAdministrativeArea {
@@ -135,7 +135,25 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 } else if let administrativeArea = placemark.administrativeArea {
                     self?.city = administrativeArea
                 } else {
-                    self?.city = "未知位置"
+                    // 使用推荐的placemark属性替代废弃的addressDictionary
+                    var addressInfo = [String]()
+                    
+                    if let thoroughfare = placemark.thoroughfare {
+                        addressInfo.append(thoroughfare)
+                    }
+                    if let subThoroughfare = placemark.subThoroughfare {
+                        addressInfo.append(subThoroughfare)
+                    }
+                    if let subLocality = placemark.subLocality {
+                        addressInfo.append(subLocality)
+                    }
+                    
+                    // 打印地址信息用于调试
+                    if !addressInfo.isEmpty {
+                        print("地址信息: \(addressInfo.joined(separator: ", "))")
+                    }
+                    
+                    self?.city = "未知城市"
                 }
             }
         }
@@ -144,7 +162,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         latitudeString = "获取失败"
         longitudeString = "获取失败"
-        city = "获取失败"
+        city = "未知城市"
         print("位置获取失败: \(error)")
     }
     
@@ -156,13 +174,14 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         case .denied, .restricted:
             latitudeString = "无权限"
             longitudeString = "无权限"
-            city = "无权限"
+            city = "未知城市"
         case .notDetermined:
+            // 保持默认值，等待用户授权
             break
         @unknown default:
             latitudeString = "未知状态"
             longitudeString = "未知状态"
-            city = "未知状态"
+            city = "未知城市"
         }
     }
 }

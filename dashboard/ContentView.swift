@@ -28,6 +28,9 @@ struct ContentView: View {
                     
                     // 位置组件放置在时钟下方
                     LocationView(showLocation: $userSettings.showLocation, fontSize: $userSettings.fontSize, locationColor: $userSettings.locationColor)
+                    
+                    // 天气组件放置在位置下方
+                    WeatherView(showWeather: $userSettings.showWeather, fontSize: $userSettings.fontSize, weatherColor: $userSettings.weatherColor)
                 }
                 .padding()
                 

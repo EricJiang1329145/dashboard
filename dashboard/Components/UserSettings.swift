@@ -64,14 +64,35 @@ class UserSettings: ObservableObject {
         }
     }
     
+    // 新增：显示天气设置
+    @Published var showWeather: Bool = true {
+        didSet {
+            UserDefaults.standard.set(showWeather, forKey: "showWeather")
+        }
+    }
+    
+    // 新增：天气颜色设置
+    @Published var weatherColor: Color = .primary {
+        didSet {
+            // 将Color转换为Data进行存储
+            if let colorData = try? NSKeyedArchiver.archivedData(withRootObject: UIColor(weatherColor), requiringSecureCoding: false) {
+                UserDefaults.standard.set(colorData, forKey: "weatherColor")
+            }
+        }
+    }
+    
+
+    
     // 临时设置值（用于预览更改）
     @Published var tempShowSeconds: Bool = false
     @Published var tempShowDate: Bool = false
     @Published var tempShowLocation: Bool = false
+    @Published var tempShowWeather: Bool = false
     @Published var tempFontSize: CGFloat = 48
     @Published var tempIs24HourFormat: Bool = true
     @Published var tempClockColor: Color = .primary
     @Published var tempLocationColor: Color = .primary
+    @Published var tempWeatherColor: Color = .primary
     
     private init() {
         loadSettings()
@@ -103,10 +124,19 @@ class UserSettings: ObservableObject {
             clockColor = Color(uiColor)
         }
         
-        // 加载位置信息颜色设置，默认为.primary
+        // 加载位置颜色设置，默认为.primary
         if let colorData = UserDefaults.standard.data(forKey: "locationColor"),
            let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
             locationColor = Color(uiColor)
+        }
+        
+        // 加载显示天气设置，如果没有保存值则默认为true
+        showWeather = UserDefaults.standard.object(forKey: "showWeather") as? Bool ?? true
+        
+        // 加载天气颜色设置，默认为.primary
+        if let colorData = UserDefaults.standard.data(forKey: "weatherColor"),
+           let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData) {
+            weatherColor = Color(uiColor)
         }
     }
     
@@ -115,10 +145,12 @@ class UserSettings: ObservableObject {
         showSeconds = false
         showDate = false
         showLocation = false
+        showWeather = false
         fontSize = 48
         is24HourFormat = true
         clockColor = .primary
         locationColor = .primary
+        weatherColor = .primary
         syncTempToCurrent()
     }
     
@@ -127,10 +159,12 @@ class UserSettings: ObservableObject {
         tempShowSeconds = showSeconds
         tempShowDate = showDate
         tempShowLocation = showLocation
+        tempShowWeather = showWeather
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
         tempClockColor = clockColor
         tempLocationColor = locationColor
+        tempWeatherColor = weatherColor
     }
     
     /// 应用临时设置
@@ -138,10 +172,12 @@ class UserSettings: ObservableObject {
         showSeconds = tempShowSeconds
         showDate = tempShowDate
         showLocation = tempShowLocation
+        showWeather = tempShowWeather
         fontSize = tempFontSize
         is24HourFormat = tempIs24HourFormat
         clockColor = tempClockColor
         locationColor = tempLocationColor
+        weatherColor = tempWeatherColor
     }
     
     /// 重置临时值到当前值
@@ -149,10 +185,12 @@ class UserSettings: ObservableObject {
         tempShowSeconds = showSeconds
         tempShowDate = showDate
         tempShowLocation = showLocation
+        tempShowWeather = showWeather
         tempFontSize = fontSize
         tempIs24HourFormat = is24HourFormat
         tempClockColor = clockColor
         tempLocationColor = locationColor
+        tempWeatherColor = weatherColor
     }
     
     /// 检查是否有未应用的更改
@@ -160,10 +198,12 @@ class UserSettings: ObservableObject {
         return showSeconds != tempShowSeconds || 
                showDate != tempShowDate ||
                showLocation != tempShowLocation ||
+               showWeather != tempShowWeather ||
                fontSize != tempFontSize || 
                is24HourFormat != tempIs24HourFormat ||
                !isColorEqual(clockColor, tempClockColor) ||
-               !isColorEqual(locationColor, tempLocationColor)
+               !isColorEqual(locationColor, tempLocationColor) ||
+               !isColorEqual(weatherColor, tempWeatherColor)
     }
     
     /// 比较两个Color是否相等（Color不直接支持==比较）

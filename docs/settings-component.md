@@ -11,6 +11,7 @@
 ```
 dashboard/Components/SettingsView.swift     # 主设置页面
 dashboard/Components/ClockSettingsView.swift # 时钟设置子页面
+dashboard/Components/LocationSettingsView.swift # 位置设置子页面
 dashboard/Components/UserSettings.swift     # 用户设置管理器
 ```
 
@@ -37,6 +38,7 @@ struct SettingsView: View {
     @Binding var isVisible: Bool
     @ObservedObject private var userSettings = UserSettings.shared
     @State private var showClockSettings = false
+    @State private var showLocationSettings = false
     @State private var showUnsavedAlert = false
     
     var body: some View {
@@ -101,6 +103,14 @@ struct SettingsView: View {
                             showClockSettings = true
                         }
                         
+                        SettingItemView(
+                            title: "位置设置",
+                            subtitle: "管理位置相关设置",
+                            icon: "location.fill"
+                        ) {
+                            showLocationSettings = true
+                        }
+                        
                         Spacer()
                     }
                     .padding()
@@ -113,6 +123,11 @@ struct SettingsView: View {
             // 时钟设置子页面
             .sheet(isPresented: $showClockSettings) {
                 ClockSettingsView()
+            }
+            
+            // 位置设置子页面
+            .sheet(isPresented: $showLocationSettings) {
+                LocationSettingsView()
             }
         }
         .onAppear {
